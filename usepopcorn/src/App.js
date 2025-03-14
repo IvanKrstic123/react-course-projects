@@ -66,9 +66,7 @@ function Logo() {
   </div>;
 }
 
-function Search() {
-  const [query, setQuery] = useState("");
-
+function Search({ query, setQuery }) {
   return (
     <input
       className="search"
@@ -97,53 +95,89 @@ function Main({ children }) {
 const KEY = "e602e10b";
 
 export default function App() {
+  const [query, setQuery] = useState("inception");
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const query = "inter";
+  const [selectedId, setSelectedId] = useState("tt1375666");
 
   useEffect(function () {
-    async function fetchMovies() {
-      try {
-        setIsLoading(true);
-        const response = await fetch(
-          `http://omdbapi.com/?apikey=${KEY}&s=${query}`
-        );
-
-        if (!response.ok)
-          throw new Error("Something went wrong with fetching movies");
-
-        const data = await response.json();
-        if (data.Response === "False") throw new Error("Movie not fount");
-
-        setMovies(() => data.Search);
-      } catch (err) {
-        setError(err.message);
-        console.error(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchMovies();
+    console.log("After initial render  ");
   }, []);
+
+  useEffect(function () {
+    console.log("After every render");
+  });
+
+  console.log("During render");
+
+  useEffect(
+    function () {
+      console.log("D");
+    },
+    [query]
+  );
+
+  useEffect(
+    function () {
+      async function fetchMovies() {
+        try {
+          setIsLoading(true);
+          setError("");
+          const response = await fetch(
+            `http://omdbapi.com/?apikey=${KEY}&s=${query}`
+          );
+
+          if (!response.ok)
+            throw new Error("Something went wrong with fetching movies");
+
+          const data = await response.json();
+          if (data.Response === "False") throw new Error("Movie not fount");
+
+          setMovies(() => data.Search);
+          console.log(data.Search);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      if (query.length < 3) {
+        setMovies([]);
+        setError("");
+        return;
+      }
+
+      fetchMovies();
+    },
+    [query]
+  );
 
   return (
     <>
       <NavBar>
-        <Search />
+        <Search query={query} setQuery={setQuery} />
         <NumResults movies={movies} />
       </NavBar>
       <Main>
         <Box>
           {isLoading && <Loader />}
-          {!isLoading && !error && <MovieList movies={movies} />}
+          {!isLoading && !error && (
+            <MovieList movies={movies} setSelectedId={setSelectedId} />
+          )}
           {error && <ErrorMessage message={error} />}
         </Box>
         <Box>
-          <WatchedSummary watched={watched} />
-          <WatchedMovieList watched={watched} />
+          {selectedId ? (
+            <MovieDetails selectedId={selectedId} />
+          ) : (
+            <>
+              <WatchedSummary watched={watched} />
+              <WatchedMovieList watched={watched} />
+            </>
+          )}
         </Box>
       </Main>
     </>
@@ -176,7 +210,7 @@ function Box({ children }) {
   );
 }
 
-function MovieList({ movies }) {
+function MovieList({ movies, setSelectedId }) {
   return (
     <ul className="list">
       {movies?.map((movie) => (
@@ -188,7 +222,12 @@ function MovieList({ movies }) {
 
 function Movie({ movie }) {
   return (
-    <li key={movie.imdbID}>
+    <li
+      key={movie.imdbID}
+      onClick={() => {
+        console.log("TEST");
+      }}
+    >
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
       <h3>{movie.Title}</h3>
       <div>
@@ -199,6 +238,10 @@ function Movie({ movie }) {
       </div>
     </li>
   );
+}
+
+function MovieDetails({ selectedId }) {
+  return <div className="details">{selectedId}</div>;
 }
 
 function WatchedSummary({ watched }) {
