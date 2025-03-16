@@ -293,6 +293,19 @@ function MovieDetails({ selectedId, onCloseMovie, watched, onAddWatched }) {
     [selectedId]
   );
 
+  useEffect(
+    function () {
+      if (!title) return;
+      document.title = `Movie | ${title}`;
+
+      return function () {
+        document.title = "usePopcorn";
+        console.log("Clean up effect taking effect!");
+      };
+    },
+    [title]
+  );
+
   return (
     <div className="details">
       {isLoading ? (
