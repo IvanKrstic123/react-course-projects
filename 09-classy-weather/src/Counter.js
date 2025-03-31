@@ -5,7 +5,7 @@ class Counter extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = { count: 0 };
+    this.state = { count: 0 }; //one huge state object
     this.handleDecrement = this.handleDecrement.bind(this);
     this.handleIncrement = this.handleIncrement.bind(this);
   }
